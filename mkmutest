@@ -1,0 +1,120 @@
+#!/bin/sh
+
+# This file is part of mutest, a micro testing framework for C.
+#
+# mutest is under the BOLA license, please see the LICENSE file or visit
+# http://blitiri.com.ar/p/bola/
+#
+# This is a simple script to generate a C file that runs all the test cases
+# present in .o files passed as arguments.
+#
+# Please, read the README file for more details.
+
+TESTER='
+#include <stdio.h> /* printf(), fprintf() */
+
+/* macro for running a single test case */
+#define run_case(name) \
+	do { \
+		if (mutest_verbose > 2) \
+			printf("\\t- executing test case \"" #name "\"\\n"); \
+		void name(); \
+		mutest_case_name = #name; \
+		name(); \
+		if (mutest_case_failed) { \
+			++mutest_failed_cases; \
+			mutest_suite_failed = 1; \
+		} else ++mutest_passed_cases; \
+		mutest_case_failed = 0; \
+	} while (0)
+
+/* globals for managing test suites */
+static const char* mutest_suite_name;
+static int mutest_failed_suites;
+static int mutest_passed_suites;
+static int mutest_suite_failed;
+
+/* globals for managing test cases */
+static const char* mutest_case_name;
+static int mutest_failed_cases;
+static int mutest_passed_cases;
+int mutest_case_failed;
+
+/* globals for managing checks */
+int mutest_failed_checks;
+int mutest_passed_checks;
+
+/*
+ * verbosity level (each level shows all the previous levels too):
+ *   0 shows only errors
+ *   1 shows a summary
+ *   2 shows test suites progress
+ *   3 shows test cases progress
+ */
+int mutest_verbose;
+
+static void run_suites();
+
+int main(int argc, char* argv[]) {
+
+	/*
+	 * arguments checking, both -v -v and -vv are accepted for setting
+	 * verbosity to 2.
+	 */
+	while (*++argv)
+		if (strncmp(*argv, "-v", 2) == 0) {
+			++mutest_verbose;
+			char* c = (*argv) + 1;
+			while (*++c)
+				if (*c == '"'v'"')
+					++mutest_verbose;
+				else
+					break;
+		}
+
+	run_suites();
+
+	if (mutest_verbose) {
+		printf("\\n");
+		printf("Tests done:\\n");
+		printf("\\t%d test suite(s) passed, %d failed.\\n",
+				mutest_passed_suites,
+				mutest_failed_suites);
+		printf("\\t%d test case(s) passed, %d failed.\\n",
+				mutest_passed_cases,
+				mutest_failed_cases);
+		printf("\\t%d check(s) passed, %d failed.\\n",
+				mutest_passed_checks, mutest_failed_checks);
+	}
+
+	return mutest_failed_checks ? 1 : 0;
+}
+
+'
+
+# the trick here is getting all the test cases present in an object file using
+# nm. All the tests must take and return void, start with "mutest_" and, of
+# course, should not be static, which leads to a small limitation: all test
+# cases must have unique names, even across test suites.
+echo "$TESTER"
+echo "static void run_suites() {"
+echo
+for file in "$@"
+do
+	suite="`basename $file .o`"
+	echo "\tmutest_suite_name = \"$suite\";"
+	echo "\tif (mutest_verbose > 1)"
+	echo "\t\tprintf(\"\\\\nRunning suite \\\"$suite\\\"\\\\n\");"
+	for symbol in `nm -p "$file" \
+			| egrep '^[[:xdigit:]]{8} T mu_test_\w+$' \
+			| cut -c12-`
+	do
+		echo "\trun_case($symbol);"
+	done
+	echo "\tif (mutest_suite_failed) ++mutest_failed_suites;"
+	echo "\telse                     ++mutest_passed_suites;"
+	echo "\tmutest_suite_failed = 0;"
+	echo
+done
+echo "}"
+

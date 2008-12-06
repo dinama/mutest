@@ -1,0 +1,8 @@
+
+Just take a look to all the files and find out. To try it out, you can type:
+make test
+
+If you want extra verbosity, try:
+make test V=-vvv
+
+
