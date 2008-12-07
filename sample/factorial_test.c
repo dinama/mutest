@@ -1,6 +1,11 @@
 
-#include "../mutest.h"
 #include "factorial.h"
+
+#ifdef MUTEST_PY
+#include "../py/mutest.h"
+#else
+#include "../mutest.h"
+#endif
 
 void mu_test_factorial_zero() {
 	unsigned x = factorial(0);

@@ -2,8 +2,13 @@
 /* see factorial_test.c for more complete examples, this file is mostly to show
  * how to have multiple test suites, and a test suite that succeed. */
 
-#include "../mutest.h"
 #include "sum.h"
+
+#ifdef MUTEST_PY
+#include "../py/mutest.h"
+#else
+#include "../mutest.h"
+#endif
 
 void mu_test_sum() {
 	mu_check(sum(4, 5) == 9);

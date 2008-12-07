@@ -5,4 +5,8 @@ make test
 If you want extra verbosity, try:
 make test V=-vvv
 
+To try out the python implementation, try:
+make test-py
+
+(same for the verbosity level)
 
