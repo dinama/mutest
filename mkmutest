@@ -28,7 +28,7 @@ do
 	echo -e '\tmutest_suite_name = "'"$suite"'";'
 	echo -e '\tmu_print(MU_SUITE, "\\nRunning suite \"'"$suite"'\"\\n");'
 	for symbol in `nm -p "$file" \
-			| egrep '^[[:xdigit:]]{8} T mu_test_\w+$' \
+			| egrep '^[[:xdigit:]]{8} T mu_test\w*$' \
 			| cut -c12-`
 	do
 		echo -e "\tmu_run_case($symbol);"
