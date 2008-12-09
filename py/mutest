@@ -37,6 +37,17 @@ def log(level, msg, *args):
 		out.write((msg % args) + '\n')
 
 
+def get_fun(so, name, argtype=None, restype=None):
+	f = getattr(so, name)
+	f.argtypes = argtype
+	f.restype = restype
+	return f
+
+
+def get_val(so, name):
+	return c_int.in_dll(so, name).value
+
+
 #class SOError (Exception):
 #	pass
 
@@ -46,27 +57,18 @@ class TestCase(object):
 	def __init__(self, so, name):
 		self.so = so
 		self.name = name
-		self.testcase = self.get_fun(name)
-		self.reset_counters = self.get_fun('mutest_reset_counters')
-		self.set_verbose_level = self.get_fun(
+		self.testcase = get_fun(so, name)
+		self.reset_counters = get_fun(so, 'mutest_reset_counters')
+		self.set_verbose_level = get_fun(so,
 				'mutest_set_verbose_level', argtype=[c_int])
 
 	@property
 	def passed_count(self):
-		return self.get_val('mutest_passed_count')
+		return get_val(self.so, 'mutest_passed_count')
 
 	@property
 	def failed_count(self):
-		return self.get_val('mutest_failed_count')
-
-	def get_fun(self, name, argtype=None, restype=None):
-		f = getattr(self.so, name)
-		f.argtypes = argtype
-		f.restype = restype
-		return f
-
-	def get_val(self, name):
-		return c_int.in_dll(self.so, name).value
+		return get_val(self.so, 'mutest_failed_count')
 
 	def run(self):
 		global verbose_level
@@ -97,8 +99,7 @@ class TestSuite (object):
 		self.name = name
 		self.so = so
 		try:
-			self.api_version = c_int.in_dll(self.so,
-					'mutest_api_version').value
+			self.api_version = get_val(so, 'mutest_api_version')
 		except ValueError:
 			self.api_version = 0
 			return
