@@ -70,13 +70,32 @@ enum {
  * if you want to implement your own customized version */
 void mu_run_suites();
 
+/* macro for running a single initialization function */
+#ifndef mu_run_init
+#define mu_run_init(name) \
+	{ \
+		int name(); \
+		int r; \
+		mu_print(MU_CASE, "\t+ Executing initialization function " \
+				"'" #name "'...\n"); \
+		if ((r = name())) { \
+			mu_print(MU_ERROR, "%s:" #name ": initialization " \
+					"function failed (returned %d), " \
+					"skipping test suite...\n", \
+					mutest_suite_name, r); \
+			++mutest_skipped_suites; \
+			break; \
+		} \
+	} do { } while (0)
+#endif /* mu_run_init */
+
 /* macro for running a single test case */
 #ifndef mu_run_case
 #define mu_run_case(name) \
 	do { \
-		mu_print(MU_CASE, "\t- executing test case \"" #name "\"\n"); \
-		void name(); \
+		mu_print(MU_CASE, "\t* Executing test case '" #name "'...\n");\
 		mutest_case_name = #name; \
+		void name(); \
 		name(); \
 		if (mutest_case_failed) { \
 			++mutest_failed_cases; \
@@ -86,6 +105,17 @@ void mu_run_suites();
 	} while (0)
 #endif /* mu_run_case */
 
+/* macro for running a single termination function */
+#ifndef mu_run_term
+#define mu_run_term(name) \
+	do { \
+		mu_print(MU_CASE, "\t- Executing termination function '" \
+				#name "'...\n"); \
+		void name(); \
+		name(); \
+	} while (0)
+#endif /* mu_run_term */
+
 /*
  * mutest exported variables for internal use, do not use directly unless you
  *  know what you're doing.
@@ -93,6 +123,7 @@ void mu_run_suites();
 extern const char* mutest_suite_name;
 extern int mutest_failed_suites;
 extern int mutest_passed_suites;
+extern int mutest_skipped_suites;
 extern int mutest_suite_failed;
 /* test cases */
 extern const char* mutest_case_name;

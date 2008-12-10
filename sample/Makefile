@@ -4,23 +4,28 @@ V=-v
 
 CFLAGS = -Wall -std=c89
 
-TARGET=tester
+TARGET = tester
+SUITES_RUNNER_SRC = test_suite_runner.c
+MKMUTEST = ../mkmutest
+MUTEST_H = ../mutest.h
+MUTEST_C = ../mutest.c
 
 OBJS = factorial.o sum.o
-TESTS = factorial_test.o sum_test.o
+TESTS = factorial_test.o sum_test.o init_fail_test.o
 MUTEST = mutest.o
-TESTER = tester.o
-SO = factorial.so sum.so
-ALL = $(TESTER) $(OBJS) $(TESTS) $(MUTEST)
+SUITES_RUNNER = $(SUITES_RUNNER_SRC:.c=.o)
+SO = factorial.so sum.so init_fail_test.so
+ALL = $(SUITES_RUNNER) $(OBJS) $(TESTS) $(MUTEST)
 
 all: $(TARGET)
 
 py: $(SO)
 
 $(TARGET): $(ALL)
+	$(CC) $(LDFLAGS) -o $@ $^
 
-$(TESTER): $(OBJS) $(TESTS) $(MUTEST)
-	../mkmutest ../mutest.h $(TESTS) | gcc -xc -o $(TESTER) -c -
+$(SUITES_RUNNER_SRC): $(MKMUTEST) $(MUTEST_H) $(TESTS)
+	$(MKMUTEST) $(MUTEST_H) $(TESTS) > $@
 
 factorial.so: factorial_test.c
 
@@ -36,7 +41,7 @@ test-py: $(SO)
 	../py/mutest $(V) -a
 
 clean:
-	$(RM) $(TARGET) $(SO) $(ALL)
+	$(RM) $(TARGET) $(SO) $(ALL) $(SUITES_RUNNER_SRC)
 
 .c.so:
 	$(CC) $(CFLAGS) $(LDFLAGS) -DMUTEST_PY -fPIC -shared -o $@ $^

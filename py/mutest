@@ -17,6 +17,10 @@ V_SUITE   = 3
 V_CASE    = 4
 V_CHECK   = 5
 
+R_OK      = 1
+R_FAILED  = 2
+R_SKIPPED = 3
+
 verbose_level = V_ERROR
 
 
@@ -78,8 +82,22 @@ class TestCase(object):
 		return (self.passed_count, self.failed_count)
 
 
+class TestSuiteInfo (object):
+
+	inits_re = re.compile(r'[0-9a-f]{8} T (mu_init\w*)', re.I)
+	terms_re = re.compile(r'[0-9a-f]{8} T (mu_term\w*)', re.I)
+	cases_re = re.compile(r'[0-9a-f]{8} T (mu_test\w*)', re.I)
+
+	def __init__(self, so_name):
+		proc = Popen(['nm', '-p', so_name], stdout=PIPE)
+		output = proc.communicate()[0]
+		self.inits = self.inits_re.findall(output)
+		self.terms = self.terms_re.findall(output)
+		self.cases = self.cases_re.findall(output)
+
+
 class TestSuiteResult (object):
-	failed = False
+	result = R_OK
 	passed_cases = 0
 	failed_cases = 0
 	passed_checks = 0
@@ -88,14 +106,14 @@ class TestSuiteResult (object):
 	def __repr__(self):
 		return 'TestSuiteResult(failed=%s, passed_cases=%s, '\
 			'failed_cases=%s, passed_checks=%s, failed_checks=%s)'\
-				% (self.failed,
+				% (self.result,
 					self.passed_cases, self.failed_cases,
 					self.passed_checks, self.failed_checks)
 
 
 class TestSuite (object):
 
-	def __init__(self, so, name, case_names):
+	def __init__(self, so, name, info):
 		self.name = name
 		self.so = so
 		try:
@@ -103,10 +121,28 @@ class TestSuite (object):
 		except ValueError:
 			self.api_version = 0
 			return
-		self.cases = [TestCase(self.so, name) for name in case_names]
+		self.inits = dict([(name, get_fun(so, name, restype=c_int))
+				for name in info.inits])
+		self.terms = dict([(name, get_fun(so, name))
+				for name in info.terms])
+		self.cases = [TestCase(self.so, name)
+				for name in info.cases]
 
 	def run(self):
 		r = TestSuiteResult()
+
+		for name, func in self.inits.items():
+			log(V_CASE, "\t+ Executing initialization function "
+					"'%s'...", name);
+			res = func()
+			if res:
+				log(V_ERROR, "%s:%s: initialization function "
+						"failed (returned %d), "
+						"skipping test suite...\n",
+						self.name, name, res);
+				r.result = R_SKIPPED
+				return r
+
 		for case in self.cases:
 			log(V_CASE, "\t* Executing test case '%s'...",
 					case.name)
@@ -115,21 +151,19 @@ class TestSuite (object):
 					'failed.', case_passed_checks,
 					case_failed_checks)
 			if case_failed_checks:
-				r.failed = True
+				r.result = R_FAILED
 				r.failed_cases += 1
 			else:
 				r.passed_cases += 1
 			r.passed_checks += case_passed_checks
 			r.failed_checks += case_failed_checks
+
+		for name, func in self.terms.items():
+			log(V_CASE, "\t- Executing termination function "
+					"'%s'...", name)
+			func()
+
 		return r
-
-
-case_names_re = re.compile(r'[0-9a-f]{8} T (mu_test\w*)', re.I)
-
-def get_case_names(so_name):
-	proc = Popen(['nm', '-p', so_name], stdout=PIPE)
-	output = proc.communicate()[0]
-	return case_names_re.findall(output)
 
 
 def parse_arguments(args):
@@ -184,9 +218,9 @@ def main(args):
 			results['skipped_suites'] += 1
 			continue
 
-		case_names = get_case_names(so_name)
+		info = TestSuiteInfo(so_name)
 
-		suite = TestSuite(so, suite_name, case_names)
+		suite = TestSuite(so, suite_name, info)
 
 		if suite.api_version != API_VERSION:
 			log(V_ERROR, 'Wrong API version (%s expected, %s '
@@ -203,8 +237,10 @@ def main(args):
 				r.passed_cases, r.failed_cases,
 				r.passed_checks, r.failed_checks)
 
-		if r.failed:
+		if r.result == R_FAILED:
 			results['failed_suites'] += 1
+		elif r.result == R_SKIPPED:
+			results['skipped_suites'] += 1
 		else:
 			results['passed_suites'] += 1
 		results['failed_cases'] += r.failed_cases

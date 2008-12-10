@@ -1,3 +1,4 @@
 *.o
 *.so
 tester
+test_suite_runner.c
