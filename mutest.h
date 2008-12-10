@@ -1,3 +1,16 @@
+/*
+ * This file is part of mutest, a simple micro unit testing framework for C.
+ *
+ * mutest was written by Leandro Lucarella <llucax@gmail.com> and is released
+ * under the BOLA license, please see the LICENSE file or visit:
+ * http://blitiri.com.ar/p/bola/
+ *
+ * This header file should be included in the source files that will make up
+ * a test suite. If you implement your mu_run_suites() function yourself, you
+ * probably will need to include this header too (see mkmutest).
+ *
+ * Please, read the README file for more details.
+ */
 
 #include <stdio.h> /* fprintf() */
 

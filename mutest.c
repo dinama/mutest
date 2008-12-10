@@ -1,3 +1,17 @@
+/*
+ * This file is part of mutest, a simple micro unit testing framework for C.
+ *
+ * mutest was written by Leandro Lucarella <llucax@gmail.com> and is released
+ * under the BOLA license, please see the LICENSE file or visit:
+ * http://blitiri.com.ar/p/bola/
+ *
+ * This is the main program, it runs all the test suites and shows the
+ * results.  The main work (of running the test suite) is done by the (usually)
+ * synthesized mu_run_suites() function, which can be generated using the
+ * mkmutest script (or written manually).
+ *
+ * Please, read the README file for more details.
+ */
 
 #include "mutest.h" /* MU_* constants, mu_print() */
 #include <stdio.h> /* printf(), fprintf() */

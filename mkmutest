@@ -1,14 +1,16 @@
 #!/bin/bash
-
-# This file is part of mutest, a micro testing framework for C.
 #
-# mutest is under the BOLA license, please see the LICENSE file or visit
+# This file is part of mutest, a simple micro unit testing framework for C.
+#
+# mutest was written by Leandro Lucarella <llucax@gmail.com> and is released
+# under the BOLA license, please see the LICENSE file or visit:
 # http://blitiri.com.ar/p/bola/
 #
-# This is a simple script to generate a C file that runs all the test cases
+# This is a simple script to generate a C file that runs all the test suites
 # present in .o files passed as arguments.
 #
 # Please, read the README file for more details.
+#
 
 
 # the trick here is getting all the test cases present in an object file using
