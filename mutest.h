@@ -41,37 +41,37 @@ enum {
 		} \
 	} while (0)
 
+/* print an error message */
+#define mu_printerr(name, action) \
+		mu_print(MU_ERROR, __FILE__ ":%d: " name " failed, "\
+				action " test case\n", __LINE__);
+
+/* modify the internal state so a failure gets counted */
+#define mutest_count_err ++mutest_failed_checks; mutest_case_failed = 1;
+
+/* modify the internal state so a success gets counted */
+#define mutest_count_suc ++mutest_passed_checks;
+
 /* check that an expression evaluates to true, continue if the check fails */
-#define mu_check(exp) \
+#define mu_check_base(exp, name, action, final) \
 	do { \
-		mu_print(MU_CHECK, "\t\t* Checking mu_check(%s)...\n", #exp); \
-		if (exp) ++mutest_passed_checks; \
+		mu_print(MU_CHECK, "\t\t* Checking " name "(" #exp ")...\n"); \
+		if (exp) mutest_count_suc \
 		else { \
-			++mutest_failed_checks; \
-			mutest_case_failed = 1; \
-			mu_print(MU_ERROR, "%s:%d: mu_check(%s) failed, " \
-					"resuming test case\n", __FILE__, \
-					__LINE__, #exp); \
+			mutest_count_err \
+			mu_printerr(name "(" #exp ")", action); \
+			final; \
 		} \
 	} while (0)
+
+/* check that an expression evaluates to true, continue if the check fails */
+#define mu_check(exp) mu_check_base(exp, "mu_check", "resuming", continue)
 
 /*
  * ensure that an expression evaluates to true, abort the current test
  * case if the check fails
  */
-#define mu_ensure(exp) \
-	do { \
-		mu_print(MU_CHECK, "\t\t* Checking mu_ensure(%s)...\n", #exp);\
-		if (exp) ++mutest_passed_checks; \
-		else { \
-			++mutest_failed_checks; \
-			mutest_case_failed = 1; \
-			mu_print(MU_ERROR, "%s:%d: mu_ensure(%s) failed, " \
-					"aborting test case\n", __FILE__, \
-					__LINE__, #exp); \
-			return; \
-		} \
-	} while (0)
+#define mu_ensure(exp) mu_check_base(exp, "mu_ensure", "aborting", return)
 
 #ifndef MUTEST_PY /* we are using the C implementation */
 
