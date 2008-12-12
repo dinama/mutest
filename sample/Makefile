@@ -16,43 +16,44 @@ V=-v
 CFLAGS = -Wall -std=c89
 
 TARGET = tester
-SUITES_RUNNER_SRC = test_suite_runner.c
+RUNNER_SRC = test_suite_runner.c
 MKMUTEST = ../mkmutest
+MUTEST = ../py/mutest
 MUTEST_H = ../mutest.h
 MUTEST_C = ../mutest.c
 
 OBJS = factorial.o sum.o
-TESTS = factorial_test.o sum_test.o init_fail_test.o
-MUTEST = mutest.o
-SUITES_RUNNER = $(SUITES_RUNNER_SRC:.c=.o)
-SO = factorial.so sum.so init_fail_test.so
-ALL = $(SUITES_RUNNER) $(OBJS) $(TESTS) $(MUTEST)
+TEST_OBJS = factorial_test.o sum_test.o init_fail_test.o
+MUTEST_OBJ = mutest.o
+RUNNER_OBJ = $(RUNNER_SRC:.c=.o)
+ALL_OBJS = $(RUNNER_OBJ) $(OBJS) $(TEST_OBJS) $(MUTEST_OBJ)
+TEST_SOS = $(TEST_OBJS:.o=.so)
 
 all: $(TARGET)
 
-py: $(SO)
+py: $(TEST_SOS)
 
-$(TARGET): $(ALL)
+$(TARGET): $(ALL_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
-$(SUITES_RUNNER_SRC): $(MKMUTEST) $(MUTEST_H) $(TESTS)
-	$(MKMUTEST) $(MUTEST_H) $(TESTS) > $@
+$(RUNNER_SRC): $(MKMUTEST_OBJ) $(MUTEST_H) $(TEST_OBJS)
+	$(MKMUTEST) $(MUTEST_H) $(TEST_OBJS) > $@
 
-factorial.so: factorial_test.c
+factorial_test.so: factorial.c
 
-sum.so: sum_test.c
+sum_test.so: sum.c
 
-$(MUTEST): ../mutest.c
-	$(CC) $(CFLAGS) -c -o mutest.o $^
+$(MUTEST_OBJ): $(MUTEST_C)
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 test: $(TARGET)
 	./$(TARGET) $(V)
 
-test-py: $(SO)
-	../py/mutest $(V) -a
+test-py: $(TEST_SOS)
+	$(MUTEST) $(V) -a
 
 clean:
-	$(RM) $(TARGET) $(SO) $(ALL) $(SUITES_RUNNER_SRC)
+	$(RM) $(TARGET) $(TEST_SOS) $(ALL_OBJS) $(RUNNER_SRC)
 
 .c.so:
 	$(CC) $(CFLAGS) $(LDFLAGS) -DMUTEST_PY -fPIC -shared -o $@ $^
