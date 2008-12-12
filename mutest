@@ -151,7 +151,7 @@ class TestSuite (object):
 			if res:
 				log(V_ERROR, "%s:%s: initialization function "
 						"failed (returned %d), "
-						"skipping test suite...\n",
+						"skipping test suite...",
 						self.name, name, res);
 				r.result = R_SKIPPED
 				return r
