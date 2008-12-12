@@ -14,11 +14,7 @@
  * Please, read the README file for more details.
  */
 
-#ifdef MUTEST_PY
-#include "../py/mutest.h"
-#else
 #include "../mutest.h"
-#endif
 
 static int ret = 0;
 

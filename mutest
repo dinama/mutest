@@ -80,19 +80,19 @@ class TestCase(object):
 				'mutest_set_verbose_level', argtype=[c_int])
 
 	@property
-	def passed_count(self):
-		return get_val(self.so, 'mutest_passed_count')
+	def passed_checks(self):
+		return get_val(self.so, 'mutest_passed_checks')
 
 	@property
-	def failed_count(self):
-		return get_val(self.so, 'mutest_failed_count')
+	def failed_checks(self):
+		return get_val(self.so, 'mutest_failed_checks')
 
 	def run(self):
 		global verbose_level
 		self.set_verbose_level(verbose_level)
 		self.reset_counters()
 		self.testcase()
-		return (self.passed_count, self.failed_count)
+		return (self.passed_checks, self.failed_checks)
 
 
 class TestSuiteInfo (object):

@@ -18,7 +18,7 @@ CFLAGS = -Wall -std=c89
 TARGET = tester
 RUNNER_SRC = test_suite_runner.c
 MKMUTEST = ../mkmutest
-MUTEST = ../py/mutest
+MUTEST = ../mutest
 MUTEST_H = ../mutest.h
 MUTEST_C = ../mutest.c
 

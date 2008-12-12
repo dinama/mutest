@@ -6,8 +6,10 @@
  * http://blitiri.com.ar/p/bola/
  *
  * This header file should be included in the source files that will make up
- * a test suite. If you implement your mu_run_suites() function yourself, you
- * probably will need to include this header too (see mkmutest).
+ * a test suite. It's used for both C and Python implementation, but when
+ * using the Python implementation you should define the MUTEST_PY macro.
+ * If you implement your mu_run_suites() function yourself, you probably will
+ * need to include this header too (see mkmutest).
  *
  * Please, read the README file for more details.
  */
@@ -17,6 +19,27 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* verbosity level (each level shows all the previous levels too) */
+enum {
+	MU_QUIET = 0, /* be completely quiet */
+	MU_ERROR,     /* shows errors only */
+	MU_SUMMARY,   /* shows a summary */
+	MU_SUITE,     /* shows test suites progress */
+	MU_CASE,      /* shows test cases progress */
+	MU_CHECK      /* shows the current running check */
+};
+
+/* print a message according to the verbosity level */
+#define mu_print(level, ...) \
+	do { \
+		if (mutest_verbose_level >= level) { \
+			if (mutest_verbose_level == MU_ERROR) \
+				fprintf(stderr, __VA_ARGS__); \
+			else \
+				fprintf(stdout, __VA_ARGS__); \
+		} \
+	} while (0)
 
 /* check that an expression evaluates to true, continue if the check fails */
 #define mu_check(exp) \
@@ -50,32 +73,7 @@ extern "C" {
 		} \
 	} while (0)
 
-/*
- * you don't need to pay any attention to what's next, unless you want to do
- * some customization, of course, in which case, you're encouraged to take
- * a look an play =)
- */
-
-/* verbosity level (each level shows all the previous levels too) */
-enum {
-	MU_QUIET = 0, /* be completely quiet */
-	MU_ERROR,     /* shows errors only */
-	MU_SUMMARY,   /* shows a summary */
-	MU_SUITE,     /* shows test suites progress */
-	MU_CASE,      /* shows test cases progress */
-	MU_CHECK      /* shows the current running check */
-};
-
-/* print a message according to the verbosity level */
-#define mu_print(level, ...) \
-	do { \
-		if (mutest_verbose_level >= level) { \
-			if (mutest_verbose_level == MU_ERROR) \
-				fprintf(stderr, __VA_ARGS__); \
-			else \
-				fprintf(stdout, __VA_ARGS__); \
-		} \
-	} while (0)
+#ifndef MUTEST_PY /* we are using the C implementation */
 
 /*
  * this function implements the test suites execution, you should generate
@@ -148,6 +146,27 @@ extern int mutest_failed_checks;
 extern int mutest_passed_checks;
 /* verbosity */
 extern int mutest_verbose_level;
+
+#else /* MUTEST_PY is defined, using the Python implementation */
+
+/* this increments when the "API" changes, it's just for sanity check */
+int mutest_api_version = 1;
+
+int mutest_case_failed; /* unused, for C implementation compatibility */
+
+int mutest_passed_checks;
+int mutest_failed_checks;
+void mutest_reset_counters() {
+	mutest_passed_checks = 0;
+	mutest_failed_checks = 0;
+}
+
+int mutest_verbose_level = MU_ERROR;
+void mutest_set_verbose_level(int val) {
+	mutest_verbose_level = val;
+}
+
+#endif /* MUTEST_PY */
 
 #ifdef __cplusplus
 }

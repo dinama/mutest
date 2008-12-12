@@ -19,11 +19,7 @@
 #include "sum.h"
 #include <stdlib.h> /* malloc(), free() */
 
-#ifdef MUTEST_PY
-#include "../py/mutest.h"
-#else
 #include "../mutest.h"
-#endif
 
 /* unused, just for ilustrate the test suite initialization/termination */
 static char* global;
