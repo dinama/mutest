@@ -11,9 +11,14 @@
 #
 
 # Show the tests summary
-V=-v
+V = -v
+
+# Set to 0 if you don't want to compile the C++ test suite
+CPP_SUITE = 1
 
 CFLAGS = -Wall -std=c89
+CXXFLAGS = -Wall -std=c++98
+LD = $(CC)
 
 TARGET = tester
 RUNNER_SRC = test_suite_runner.c
@@ -29,12 +34,17 @@ RUNNER_OBJ = $(RUNNER_SRC:.c=.o)
 ALL_OBJS = $(RUNNER_OBJ) $(OBJS) $(TEST_OBJS) $(MUTEST_OBJ)
 TEST_SOS = $(TEST_OBJS:.o=.so)
 
+ifeq ($(CPP_SUITE), 1)
+TEST_OBJS += exception_test.o
+LD = $(CXX)
+endif
+
 all: $(TARGET)
 
 py: $(TEST_SOS)
 
 $(TARGET): $(ALL_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 $(RUNNER_SRC): $(MKMUTEST_OBJ) $(MUTEST_H) $(TEST_OBJS)
 	$(MKMUTEST) $(MUTEST_H) $(TEST_OBJS) > $@
@@ -57,6 +67,9 @@ clean:
 
 .c.so:
 	$(CC) $(CFLAGS) $(LDFLAGS) -DMUTEST_PY -fPIC -shared -o $@ $^
+
+.cpp.so:
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -DMUTEST_PY -fPIC -shared -o $@ $^
 
 .SUFFIXES: .so
 

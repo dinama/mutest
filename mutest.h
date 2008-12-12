@@ -52,16 +52,47 @@ enum {
 /* modify the internal state so a success gets counted */
 #define mutest_count_suc ++mutest_passed_checks;
 
+#ifdef __cplusplus
+
+#include <exception>
+
+/* print an error message triggered by a C++ exception */
+#define mu_printex(name, action, ex) \
+		mu_print(MU_ERROR, __FILE__ ":%d: " name " failed, " \
+				"exception thrown (%s), " action \
+				" test case\n", __LINE__, ex);
+
+#define mutest_try try {
+#define mutest_catch(name, action, final) \
+		} catch (const std::exception& e) { \
+			mutest_count_err \
+			mu_printex(name, action, e.what()); \
+			final; \
+		} catch (...) { \
+			mutest_count_err \
+			mu_printex(name, action, "[unknown]"); \
+			final; \
+		}
+
+#else /* !__cplusplus */
+
+#define mutest_try
+#define mutest_catch(name, action, exp)
+
+#endif /* __cplusplus */
+
 /* check that an expression evaluates to true, continue if the check fails */
 #define mu_check_base(exp, name, action, final) \
 	do { \
 		mu_print(MU_CHECK, "\t\t* Checking " name "(" #exp ")...\n"); \
-		if (exp) mutest_count_suc \
-		else { \
-			mutest_count_err \
-			mu_printerr(name "(" #exp ")", action); \
-			final; \
-		} \
+		mutest_try \
+			if (exp) mutest_count_suc \
+			else { \
+				mutest_count_err \
+				mu_printerr(name "(" #exp ")", action); \
+				final; \
+			} \
+		mutest_catch(name, action, final) \
 	} while (0)
 
 /* check that an expression evaluates to true, continue if the check fails */
@@ -72,6 +103,49 @@ enum {
  * case if the check fails
  */
 #define mu_ensure(exp) mu_check_base(exp, "mu_ensure", "aborting", return)
+
+#ifdef __cplusplus
+
+#define mu_echeck_base(ex, exp, name, action, final) \
+	do { \
+		mu_print(MU_CHECK, "\t\t* Checking " name "(" #ex ", " #exp \
+				")...\n"); \
+		try { \
+			exp; \
+			mutest_count_err \
+			mu_printerr(name "(" #ex ", " #exp ")", \
+					"no exception thrown, "	action); \
+			final; \
+		} catch (const ex& e) { \
+			mutest_count_suc \
+		} catch (const std::exception& e) { \
+			mutest_count_err \
+			mu_printex(name "(" #ex ", " #exp ")", action, \
+					e.what()); \
+			final; \
+		} catch (...) { \
+			mutest_count_err \
+			mu_printex(name "(" #ex ", " #exp ")", action, \
+					"[unknown]"); \
+			final; \
+		} \
+	} while (0)
+
+/*
+ * check that an expression throws a particular exception, continue if the
+ * check fails
+ */
+#define mu_echeck(ex, exp) \
+	mu_echeck_base(ex, exp, "mu_echeck", "resuming", continue)
+
+/*
+ * ensure that an expression throws a particular exception, abort the current
+ * test case if the check fails
+ */
+#define mu_eensure(ex, exp) \
+	mu_echeck_base(ex, exp, "mu_eensure", "aborting", return)
+
+#endif /* __cplusplus */
 
 #ifndef MUTEST_PY /* we are using the C implementation */
 
