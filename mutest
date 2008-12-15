@@ -102,7 +102,7 @@ class TestSuiteInfo (object):
 	cases_re = re.compile(r'[0-9a-f]{8} T (mu_test\w*)', re.I)
 
 	def __init__(self, so_name):
-		proc = Popen(['nm', '-p', so_name], stdout=PIPE)
+		proc = Popen(['nm', so_name], stdout=PIPE)
 		output = proc.communicate()[0]
 		self.inits = self.inits_re.findall(output)
 		self.terms = self.terms_re.findall(output)
