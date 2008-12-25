@@ -188,11 +188,11 @@ def parse_arguments(args):
 	search_help = ('Search for all test suites in the current directory '
 			'(*.so) and add them')
 	parser = OptionParser()
-	parser.add_option('-v', dest='verbose_level', action='count',
-			default=1, help=verbose_help)
-	parser.add_option('-q', '--verbose-level', dest='quiet',
-			action='store_true', default=False, help=quiet_help)
-	parser.add_option('-a', '--search-all', dest='search_all',
+	parser.add_option('-v', '--verbose', dest='verbose_level',
+			action='count', default=1, help=verbose_help)
+	parser.add_option('-q', '--quiet', dest='quiet', action='store_true',
+			default=False, help=quiet_help)
+	parser.add_option('-s', '--search', dest='search',
 			action='store_true', default=False, help=search_help)
 	return parser.parse_args()
 
@@ -207,7 +207,7 @@ def main(args):
 	else:
 		verbose_level = opts.verbose_level
 
-	if opts.search_all:
+	if opts.search:
 		args.extend(glob('*.so'))
 
 	if not args:
