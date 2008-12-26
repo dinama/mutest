@@ -21,6 +21,10 @@ RST2HTML = rst2html
 RST2LATEX = rst2latex
 PDFLATEX = pdflatex
 INSTALL = install
+LN = ln
+MKDIR = mkdir
+CHMOD = chmod
+GIT = git
 # Directories
 prefix = /usr/local
 BIN_DIR = bin
@@ -79,11 +83,32 @@ install: install-c install-py install-doc
 test:
 	$(MAKE) -k -C sample test test-py
 
+# You shouldn't use this target
+ifeq ($(MAKECMDGOALS),release)
+ifeq ($(VERSION),)
+$(error You have to specify a VERSION when using the 'release' target)
+endif
+endif
+release: doc
+	$(RM) $(MANUAL_GARBAGE)
+	$(GIT) tag -f $(VERSION)
+	$(GIT) push --tags
+	$(MKDIR) -p releases
+	$(CHMOD) 755 releases
+	$(GIT) archive --format=tar --prefix=mutest-$(VERSION)/ $(VERSION) \
+			| gzip > releases/mutest-$(VERSION).tar.gz
+	$(CHMOD) 644 releases/mutest-$(VERSION).tar.gz
+	$(LN) -sf mutest-$(VERSION).tar.gz releases/mutest.tar.gz
+	$(INSTALL) -m 644 manual.html releases/manual-$(VERSION).html
+	$(LN) -sf manual-$(VERSION).html releases/manual.html
+	$(INSTALL) -m 644 manual.pdf releases/manual-$(VERSION).pdf
+	$(LN) -sf manual-$(VERSION).pdf releases/manual.pdf
+
 clean:
 	$(RM) $(MANUAL_HTML) $(MANUAL_LATEX) $(MANUAL_PDF) $(MANUAL_GARBAGE)
 
 .PHONY: all doc doc-html doc-latex doc-pdf \
 		install-readme install-html install-pdf install-doc \
 		install-c install-py install \
-		test clean
+		release test clean
 
