@@ -93,19 +93,19 @@ factorial.c
 -----------
 
 .. include:: sample/factorial.c
-    :literal:
+    :code: c
 
 factorial_test.c
 ----------------
 
 .. include:: sample/factorial_test.c
-    :literal:
+    :code: c
 
 exception_test.cpp
 ------------------
 
 .. include:: sample/exception_test.cpp
-    :literal:
+    :code: c++
 
 
 Concepts
