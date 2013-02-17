@@ -1,4 +1,11 @@
 
+.. |flattr| raw:: html
+
+   <div style="width: 220px; height: 270px; float: right; margin-left: 1em; margin-top: 1em">
+   <iframe width="220" height="270" style="border: none; outline: none" src="http://tools.flattr.net/widgets/thing.html?thing=1141711"></iframe>
+   </div>
+
+
 ======================================================
 |mutest| - A simple micro unit testing framework for C
 ======================================================
@@ -22,6 +29,9 @@
     terminates the current `test case`_ too. A (normally) automated `test
     program`_ run all the `test suites`_ and print some stats. It fails
     (returns non-zero) if any `test suite`_ fails.
+
+    |flattr|
+
 
 
 .. contents::
