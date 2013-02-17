@@ -12,14 +12,12 @@
 
 MANUAL_SRC=README
 MANUAL_HTML=manual.html
-MANUAL_LATEX=manual.latex
 MANUAL_PDF=manual.pdf
 SAMPLES = sample/factorial.c sample/factorial_test.c sample/exception_test.cpp
 MANUAL_GARBAGE = manual.aux manual.log manual.out
 # Programs
 RST2HTML = rst2html
-RST2LATEX = rst2latex
-PDFLATEX = pdflatex
+RST2PDF = rst2pdf
 INSTALL = install
 LN = ln
 MKDIR = mkdir
@@ -40,16 +38,10 @@ doc-html: $(MANUAL_HTML)
 $(MANUAL_HTML): $(MANUAL_SRC) $(SAMPLES)
 	$(RST2HTML) $< > $@
 
-doc-latex: $(MANUAL_LATEX)
-
-$(MANUAL_LATEX): $(MANUAL_SRC) $(SAMPLES)
-	$(RST2LATEX) $< > $@
-
 doc-pdf: $(MANUAL_PDF)
 
-$(MANUAL_PDF): $(MANUAL_LATEX)
-	$(PDFLATEX) $<
-	$(PDFLATEX) $<
+$(MANUAL_PDF): $(MANUAL_SRC)
+	$(RST2PDF) $< -o $@
 
 install-readme:
 	$(INSTALL) -m 755 -d $(prefix)/$(DOC_DIR)
@@ -105,9 +97,9 @@ release: doc
 	$(LN) -sf manual-$(VERSION).pdf releases/manual.pdf
 
 clean:
-	$(RM) $(MANUAL_HTML) $(MANUAL_LATEX) $(MANUAL_PDF) $(MANUAL_GARBAGE)
+	$(RM) $(MANUAL_HTML) $(MANUAL_PDF) $(MANUAL_GARBAGE)
 
-.PHONY: all doc doc-html doc-latex doc-pdf \
+.PHONY: all doc doc-html doc-pdf \
 		install-readme install-html install-pdf install-doc \
 		install-c install-py install \
 		release test clean
