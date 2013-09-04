@@ -49,7 +49,7 @@ def log(level, msg, *args):
 	global verbose_level
 	out = stdout
 	if level == V_ERROR:
-		stderr
+		out = stderr
 	if verbose_level >= level:
 		out.write((msg % args) + '\n')
 
