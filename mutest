@@ -39,30 +39,30 @@ verbose_level = V_ERROR
 
 SUMMARY_TEXT = '''
 Tests done:
-	%(passed_suites)s test suite(s) passed, %(failed_suites)s failed, \
+  %(passed_suites)s test suite(s) passed, %(failed_suites)s failed, \
 %(skipped_suites)s skipped.
-	%(passed_cases)s test case(s) passed, %(failed_cases)s failed.
-	%(passed_checks)s check(s) passed, %(failed_checks)s failed.
+  %(passed_cases)s test case(s) passed, %(failed_cases)s failed.
+  %(passed_checks)s check(s) passed, %(failed_checks)s failed.
 '''
 
 def log(level, msg, *args):
-	global verbose_level
-	out = stdout
-	if level == V_ERROR:
-		out = stderr
-	if verbose_level >= level:
-		out.write((msg % args) + '\n')
+  global verbose_level
+  out = stdout
+  if level == V_ERROR:
+    out = stderr
+  if verbose_level >= level:
+    out.write((msg % args) + '\n')
 
 
 def get_fun(so, name, argtype=None, restype=None):
-	f = getattr(so, name)
-	f.argtypes = argtype
-	f.restype = restype
-	return f
+  f = getattr(so, name)
+  f.argtypes = argtype
+  f.restype = restype
+  return f
 
 
 def get_val(so, name):
-	return c_int.in_dll(so, name).value
+  return c_int.in_dll(so, name).value
 
 
 #class SOError (Exception):
@@ -71,202 +71,202 @@ def get_val(so, name):
 
 class TestCase(object):
 
-	def __init__(self, so, name):
-		self.so = so
-		self.name = name
-		self.testcase = get_fun(so, name)
-		self.reset_counters = get_fun(so, 'mutest_reset_counters')
-		self.set_verbose_level = get_fun(so,
-				'mutest_set_verbose_level', argtype=[c_int])
+  def __init__(self, so, name):
+    self.so = so
+    self.name = name
+    self.testcase = get_fun(so, name)
+    self.reset_counters = get_fun(so, 'mutest_reset_counters')
+    self.set_verbose_level = get_fun(so,
+        'mutest_set_verbose_level', argtype=[c_int])
 
-	@property
-	def passed_checks(self):
-		return get_val(self.so, 'mutest_passed_checks')
+  @property
+  def passed_checks(self):
+    return get_val(self.so, 'mutest_passed_checks')
 
-	@property
-	def failed_checks(self):
-		return get_val(self.so, 'mutest_failed_checks')
+  @property
+  def failed_checks(self):
+    return get_val(self.so, 'mutest_failed_checks')
 
-	def run(self):
-		global verbose_level
-		self.set_verbose_level(verbose_level)
-		self.reset_counters()
-		self.testcase()
-		return (self.passed_checks, self.failed_checks)
+  def run(self):
+    global verbose_level
+    self.set_verbose_level(verbose_level)
+    self.reset_counters()
+    self.testcase()
+    return (self.passed_checks, self.failed_checks)
 
 
 class TestSuiteInfo (object):
 
-	inits_re = re.compile(r'[0-9a-f]{8} T (mu_init\w*)', re.I)
-	terms_re = re.compile(r'[0-9a-f]{8} T (mu_term\w*)', re.I)
-	cases_re = re.compile(r'[0-9a-f]{8} T (mu_test\w*)', re.I)
+  inits_re = re.compile(r'[0-9a-f]{8} T (mu_init\w*)', re.I)
+  terms_re = re.compile(r'[0-9a-f]{8} T (mu_term\w*)', re.I)
+  cases_re = re.compile(r'[0-9a-f]{8} T (mu_test\w*)', re.I)
 
-	def __init__(self, so_name):
-		proc = Popen(['nm', so_name], stdout=PIPE)
-		output = proc.communicate()[0]
-		self.inits = self.inits_re.findall(output)
-		self.terms = self.terms_re.findall(output)
-		self.cases = self.cases_re.findall(output)
+  def __init__(self, so_name):
+    proc = Popen(['nm', so_name], stdout=PIPE)
+    output = proc.communicate()[0]
+    self.inits = self.inits_re.findall(output)
+    self.terms = self.terms_re.findall(output)
+    self.cases = self.cases_re.findall(output)
 
 
 class TestSuiteResult (object):
-	result = R_OK
-	passed_cases = 0
-	failed_cases = 0
-	passed_checks = 0
-	failed_checks = 0
+  result = R_OK
+  passed_cases = 0
+  failed_cases = 0
+  passed_checks = 0
+  failed_checks = 0
 
-	def __repr__(self):
-		return 'TestSuiteResult(failed=%s, passed_cases=%s, '\
-			'failed_cases=%s, passed_checks=%s, failed_checks=%s)'\
-				% (self.result,
-					self.passed_cases, self.failed_cases,
-					self.passed_checks, self.failed_checks)
+  def __repr__(self):
+    return 'TestSuiteResult(failed=%s, passed_cases=%s, '\
+      'failed_cases=%s, passed_checks=%s, failed_checks=%s)'\
+        % (self.result,
+          self.passed_cases, self.failed_cases,
+          self.passed_checks, self.failed_checks)
 
 
 class TestSuite (object):
 
-	def __init__(self, so, name, info):
-		self.name = name
-		self.so = so
-		try:
-			self.api_version = get_val(so, 'mutest_api_version')
-		except ValueError:
-			self.api_version = 0
-			return
-		self.inits = dict([(name, get_fun(so, name, restype=c_int))
-				for name in info.inits])
-		self.terms = dict([(name, get_fun(so, name))
-				for name in info.terms])
-		self.cases = [TestCase(self.so, name)
-				for name in info.cases]
+  def __init__(self, so, name, info):
+    self.name = name
+    self.so = so
+    try:
+      self.api_version = get_val(so, 'mutest_api_version')
+    except ValueError:
+      self.api_version = 0
+      return
+    self.inits = dict([(name, get_fun(so, name, restype=c_int))
+        for name in info.inits])
+    self.terms = dict([(name, get_fun(so, name))
+        for name in info.terms])
+    self.cases = [TestCase(self.so, name)
+        for name in info.cases]
 
-	def run(self):
-		r = TestSuiteResult()
+  def run(self):
+    r = TestSuiteResult()
 
-		for name, func in self.inits.items():
-			log(V_CASE, "\t+ Executing initialization function "
-					"'%s'...", name);
-			res = func()
-			if res:
-				log(V_ERROR, "%s:%s: initialization function "
-						"failed (returned %d), "
-						"skipping test suite...",
-						self.name, name, res);
-				r.result = R_SKIPPED
-				return r
+    for name, func in self.inits.items():
+      log(V_CASE, "\t+ Executing initialization function "
+          "'%s'...", name);
+      res = func()
+      if res:
+        log(V_ERROR, "%s:%s: initialization function "
+            "failed (returned %d), "
+            "skipping test suite...",
+            self.name, name, res);
+        r.result = R_SKIPPED
+        return r
 
-		for case in self.cases:
-			log(V_CASE, "\t* Executing test case '%s'...",
-					case.name)
-			(case_passed_checks, case_failed_checks) = case.run()
-			log(V_CASE, '\t  Results: %s check(s) passed, %s '
-					'failed.', case_passed_checks,
-					case_failed_checks)
-			if case_failed_checks:
-				r.result = R_FAILED
-				r.failed_cases += 1
-			else:
-				r.passed_cases += 1
-			r.passed_checks += case_passed_checks
-			r.failed_checks += case_failed_checks
+    for case in self.cases:
+      log(V_CASE, "\t* Executing test case '%s'...",
+          case.name)
+      (case_passed_checks, case_failed_checks) = case.run()
+      log(V_CASE, '\t  Results: %s check(s) passed, %s '
+          'failed.', case_passed_checks,
+          case_failed_checks)
+      if case_failed_checks:
+        r.result = R_FAILED
+        r.failed_cases += 1
+      else:
+        r.passed_cases += 1
+      r.passed_checks += case_passed_checks
+      r.failed_checks += case_failed_checks
 
-		for name, func in self.terms.items():
-			log(V_CASE, "\t- Executing termination function "
-					"'%s'...", name)
-			func()
+    for name, func in self.terms.items():
+      log(V_CASE, "\t- Executing termination function "
+          "'%s'...", name)
+      func()
 
-		return r
+    return r
 
 
 def parse_arguments(args):
-	verbose_help = ('Show a short result summary, add more for extra '
-			'verbosity: -vv for test suites progress, -vvv for '
-			'test cases progress and -vvvv for printing each '
-			'and every check done')
-	quiet_help = ('Be quiet (overrides -v)')
-	search_help = ('Search for all test suites in the current directory '
-			'(*.so) and add them')
-	parser = OptionParser()
-	parser.add_option('-v', '--verbose', dest='verbose_level',
-			action='count', default=1, help=verbose_help)
-	parser.add_option('-q', '--quiet', dest='quiet', action='store_true',
-			default=False, help=quiet_help)
-	parser.add_option('-s', '--search', dest='search',
-			action='store_true', default=False, help=search_help)
-	return parser.parse_args()
+  verbose_help = ('Show a short result summary, add more for extra '
+      'verbosity: -vv for test suites progress, -vvv for '
+      'test cases progress and -vvvv for printing each '
+      'and every check done')
+  quiet_help = ('Be quiet (overrides -v)')
+  search_help = ('Search for all test suites in the current directory '
+      '(*.so) and add them')
+  parser = OptionParser()
+  parser.add_option('-v', '--verbose', dest='verbose_level',
+      action='count', default=1, help=verbose_help)
+  parser.add_option('-q', '--quiet', dest='quiet', action='store_true',
+      default=False, help=quiet_help)
+  parser.add_option('-s', '--search', dest='search',
+      action='store_true', default=False, help=search_help)
+  return parser.parse_args()
 
 
 def main(args):
-	global verbose_level
+  global verbose_level
 
-	(opts, args) = parse_arguments(args)
+  (opts, args) = parse_arguments(args)
 
-	if opts.quiet:
-		verbose_level = 0
-	else:
-		verbose_level = opts.verbose_level
+  if opts.quiet:
+    verbose_level = 0
+  else:
+    verbose_level = opts.verbose_level
 
-	if opts.search:
-		args.extend(glob('*.so'))
+  if opts.search:
+    args.extend(glob('*.so'))
 
-	if not args:
-		log(V_SUMMARY, 'No test suites to run')
-		return 0
+  if not args:
+    log(V_SUMMARY, 'No test suites to run')
+    return 0
 
-	results = dict(passed_suites=0, failed_suites=0, skipped_suites=0,
-			passed_cases=0, failed_cases=0,
-			passed_checks=0, failed_checks=0)
+  results = dict(passed_suites=0, failed_suites=0, skipped_suites=0,
+      passed_cases=0, failed_cases=0,
+      passed_checks=0, failed_checks=0)
 
-	for so_name in args:
-		suite_name = splitext(basename(so_name))[0]
-		log(V_SUITE, '\nRunning test suite "%s"...', suite_name)
+  for so_name in args:
+    suite_name = splitext(basename(so_name))[0]
+    log(V_SUITE, '\nRunning test suite "%s"...', suite_name)
 
-		try:
-			so = cdll.LoadLibrary(abspath(so_name))
-		except OSError, e:
-			log(V_ERROR, 'Error loading "%s" (%s), skipping '
-					'test suite "%s"', so_name, e,
-					suite_name)
-			results['skipped_suites'] += 1
-			continue
+    try:
+      so = cdll.LoadLibrary(abspath(so_name))
+    except OSError, e:
+      log(V_ERROR, 'Error loading "%s" (%s), skipping '
+          'test suite "%s"', so_name, e,
+          suite_name)
+      results['skipped_suites'] += 1
+      continue
 
-		info = TestSuiteInfo(so_name)
+    info = TestSuiteInfo(so_name)
 
-		suite = TestSuite(so, suite_name, info)
+    suite = TestSuite(so, suite_name, info)
 
-		if suite.api_version != API_VERSION:
-			log(V_ERROR, 'Wrong API version (%s expected, %s '
-					'found), skipping test suite "%s"',
-					API_VERSION, suite.api_version,
-					suite.name)
-			results['skipped_suites'] += 1
-			continue
+    if suite.api_version != API_VERSION:
+      log(V_ERROR, 'Wrong API version (%s expected, %s '
+          'found), skipping test suite "%s"',
+          API_VERSION, suite.api_version,
+          suite.name)
+      results['skipped_suites'] += 1
+      continue
 
-		r = suite.run()
+    r = suite.run()
 
-		log(V_SUITE, 'Results: %s test case(s) passed, %s failed, '
-				'%s check(s) passed, %s failed.',
-				r.passed_cases, r.failed_cases,
-				r.passed_checks, r.failed_checks)
+    log(V_SUITE, 'Results: %s test case(s) passed, %s failed, '
+        '%s check(s) passed, %s failed.',
+        r.passed_cases, r.failed_cases,
+        r.passed_checks, r.failed_checks)
 
-		if r.result == R_FAILED:
-			results['failed_suites'] += 1
-		elif r.result == R_SKIPPED:
-			results['skipped_suites'] += 1
-		else:
-			results['passed_suites'] += 1
-		results['failed_cases'] += r.failed_cases
-		results['passed_cases'] += r.passed_cases
-		results['failed_checks'] += r.failed_checks
-		results['passed_checks'] += r.passed_checks
+    if r.result == R_FAILED:
+      results['failed_suites'] += 1
+    elif r.result == R_SKIPPED:
+      results['skipped_suites'] += 1
+    else:
+      results['passed_suites'] += 1
+    results['failed_cases'] += r.failed_cases
+    results['passed_cases'] += r.passed_cases
+    results['failed_checks'] += r.failed_checks
+    results['passed_checks'] += r.passed_checks
 
-	log(V_SUMMARY, SUMMARY_TEXT % results)
+  log(V_SUMMARY, SUMMARY_TEXT % results)
 
-	return 0
+  sys.exit(results['failed_checks'])
 
 
 if __name__ == '__main__':
-	import sys
-	sys.exit(main(sys.argv[1:]))
+  import sys
+  sys.exit(main(sys.argv[1:]))
 
