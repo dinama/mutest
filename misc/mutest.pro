@@ -14,3 +14,6 @@ SOURCES += ../mutest.c
 
 OTHER_FILES += ../mutest ../mkmutest
 
+DISTFILES += \
+    ../add_mutest.cmake
+
