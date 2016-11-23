@@ -145,6 +145,34 @@ enum {
 #define mu_eensure(ex, exp) \
 	mu_echeck_base(ex, exp, "mu_eensure", "aborting", return)
 
+
+#define mu_nothrow_check_base(exp, name, action, final) \
+  do { \
+    mu_print(MU_CHECK, "\t\t* Checking " name "(" #exp ")...\n"); \
+    try { \
+      exp; \
+      mutest_count_suc \
+    } catch (...) { \
+      mutest_count_err \
+      mu_printex(name "(" #exp ")", action, "[unknown]"); \
+      final; \
+    } \
+  } while (0)
+
+/*
+ * ensure that an expression no throw any exception, continue if the
+ * check fails
+ */
+#define mu_nothrow_check(exp) \
+  mu_nothrow_check_base(exp, "mu_nothrow_check", "resuming", continue)
+
+/*
+ * ensure that an expression no throw any exception, abort the current
+ * test case if the check fails
+ */
+#define mu_nothrow_ensure(exp) \
+  mu_nothrow_check_base(exp, "mu_nothrow_ensure", "aborting", return)
+
 #endif /* __cplusplus */
 
 #ifndef MUTEST_PY /* we are using the C implementation */
