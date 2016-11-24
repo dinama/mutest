@@ -3,6 +3,9 @@
 |mutest| - A simple micro unit testing framework for C
 ======================================================
 
+:Author: Dinama
+:Date: |date|
+
 :Author: Leandro Lucarella
 :Contact: llucax@gmail.com
 :Version: 1.0
@@ -31,21 +34,6 @@
 Installation
 ============
 
-Download the `latest distribution tarball`__ and uncompress it.
-
-__ http://proj.llucax.com.ar/home/mutest/releases/mutest.tar.gz
-
-You can also download any release from the `releases directory`__ or get it
-using Git_ directly from the `Git repository`__.
-
-__ http://proj.llucax.com.ar/home/mutest/releases/
-__ http://git.llucax.com.ar/w/software/mutest.git
-
-You can get `this manual`__ too, or a `PDF version`__ of it.
-
-__ http://proj.llucax.com.ar/home/mutest/manual.html
-__ http://proj.llucax.com.ar/home/mutest/manual.pdf
-
 To actually install |mutest| run::
 
     $ make install
@@ -72,7 +60,7 @@ Quick Sample
 
 You can find some samples in the sample__ directory.
 
-__ http://git.llucax.com.ar/w/software/mutest.git?a=tree;f=sample;h=d8ad4dd9c3428fef5963107c82ab6a5e34ec6e00;hb=HEAD
+https://github.com/dinama/mutest/tree/master/sample
 
 This is an example taken from there. A simple *module* called `factorial.c`_
 with its corresponding `test suite`_ (`factorial_test.c`_).
@@ -493,6 +481,58 @@ Example
             }
         }
 
+
+``mu_nothrow_check()``
+---------------
+
+Synopsis
+    ``mu_nothrow_check(expression)``
+
+Description
+    Check that the ``expression`` not throws any exception. Continue with the `test case`_ if fail.
+
+Availability
+    C++ only
+
+Example
+    ::
+
+        #include <stdexcept>
+
+        extern "C"
+        {
+            void mu_test(void)
+            {
+                mu_nothrow_check(throw 1); /* fail */            
+                mu_nothrow_check(true); /* excecuted, pass */            
+            }
+        }
+
+``mu_nothrow_ensure()``
+----------------
+
+Synopsis
+    ``mu_nothrow_ensure(expression)``
+
+Description
+    Check that the ``expression`` not throws any exception. Interrupt the `test case`_ if fail.
+
+Availability
+    C++ only
+
+Example
+    ::
+
+        #include <stdexcept>
+
+        extern "C"
+        {
+            void mu_test(void)
+            {                
+                mu_nothrow_ensure(throw 1); /* fail */
+                mu_nothrow_check(throw 1); /* not excecuted */                
+            }
+        }
 
 About
 =====
