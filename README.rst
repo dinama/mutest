@@ -12,7 +12,6 @@ forked from:
 :Author: Leandro Lucarella
 :Contact: llucax@gmail.com
 :Version: 1.0
-:Date: |date|
 :Copyright: Leandro Lucarella (2008), released under the BOLA_ license
 :Abstract: |mutest| is a micro `unit testing`_ framework for C (with some
     `C++ support`_). It's mostly an idea (it even comes with
