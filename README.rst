@@ -3,10 +3,6 @@
 |mutest| - A simple micro unit testing framework for C
 ======================================================
 
-:Author: Dinama
-:Version: 1.1
-:Date: |date|
-
 forked from:
 
 :Author: Leandro Lucarella
