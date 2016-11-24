@@ -4,7 +4,10 @@
 ======================================================
 
 :Author: Dinama
+:Version: 1.1
 :Date: |date|
+
+forked from:
 
 :Author: Leandro Lucarella
 :Contact: llucax@gmail.com
