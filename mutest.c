@@ -53,6 +53,7 @@ int mutest_verbose_level = 1; /* exported for use in test suites */
  * increasing the verbosity by 2.
  */
 void parse_args(int argc, char* argv[]) {
+  (void)argc;
 	while (*++argv) {
 		if (strncmp(*argv, "-v", 2) == 0) {
 			++mutest_verbose_level;
