@@ -14,10 +14,12 @@
  * Please, read the README file for more details.
  */
 
-#include <stdio.h> /* fprintf() */
-
 #ifdef __cplusplus
+#include <cstdio> /* fprintf() */
+#include <exception>
 extern "C" {
+#else
+#include <stdio.h> /* fprintf() */
 #endif
 
 /* verbosity level (each level shows all the previous levels too) */
@@ -53,8 +55,6 @@ enum {
 #define mutest_count_suc ++mutest_passed_checks;
 
 #ifdef __cplusplus
-
-#include <exception>
 
 /* print an error message triggered by a C++ exception */
 #define mu_printex(name, action, ex) \
