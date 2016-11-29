@@ -11,6 +11,7 @@
  * Please, read the README file for more details.
  */
 
+#include <new>
 #include <stdexcept> // std::out_of_range
 #include <vector> // std::vector
 
@@ -32,6 +33,18 @@ void mu_test_exceptions() {
 	mu_eensure(std::out_of_range, v.at(0));
 	// this will never be executed (it should fail if it is)
 	mu_check(v.empty());
+}
+
+void mu_test_nothrow() {
+  std::vector<int> v(1);
+  // ok
+  mu_check(v.at(0) == 0);
+  // throws! This fails
+  mu_nothrow_check(v.at(1));
+  // throws! This fails
+  mu_nothrow_ensure(v.at(1));
+  // this will never be executed (it should fail if it is)
+  mu_check(v.empty());
 }
 
 } // extern "C"

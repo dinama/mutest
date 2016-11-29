@@ -152,6 +152,9 @@ enum {
     try { \
       exp; \
       mutest_count_suc \
+    } catch (const std::exception& e) { \
+      mutest_count_err \
+      mu_printex(name "(" #exp ")", action, e.what()); \
     } catch (...) { \
       mutest_count_err \
       mu_printex(name "(" #exp ")", action, "[unknown]"); \
