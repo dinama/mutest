@@ -5,8 +5,9 @@
 #
 
 function(add_mutest)
-  cmake_parse_arguments(mutest "" "FILE" "DEPENDS"  ${ARGN})
-
+  cmake_parse_arguments(mutest "" "FILE" "DEPENDS;FILES" ${ARGN})
+  message(DEPENDS ${mutest_DEPENDS})
+  message(FILES ${mutest_FILES})
   get_filename_component(mutest_SOURCE ${mutest_FILE} NAME)
   get_filename_component(mutest_NAME ${mutest_FILE} NAME_WE)
 
@@ -28,7 +29,7 @@ function(add_mutest)
   )
   set_source_files_properties(${RUN_SRC} PROPERTIES GENERATED TRUE)
 
-  add_executable(${mutest_NAME} $<TARGET_OBJECTS:${mutest_NAME}obj> ${RUN_SRC} ${MUTEST_DIR}/mutest.c)
+  add_executable(${mutest_NAME} $<TARGET_OBJECTS:${mutest_NAME}obj> ${RUN_SRC} ${mutest_FILES} ${MUTEST_DIR}/mutest.c)
   target_link_libraries(${mutest_NAME} ${mutest_DEPENDS})
   add_test(NAME ${mutest_NAME} COMMAND ${mutest_NAME})
 endfunction(add_mutest)
