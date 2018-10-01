@@ -6,8 +6,8 @@
 
 function(add_mutest)
   cmake_parse_arguments(mutest "" "FILE" "DEPENDS;FILES" ${ARGN})
-  message(DEPENDS ${mutest_DEPENDS})
-  message(FILES ${mutest_FILES})
+#  message(DEPENDS ${mutest_DEPENDS})
+#  message(FILES ${mutest_FILES})
   get_filename_component(mutest_SOURCE ${mutest_FILE} NAME)
   get_filename_component(mutest_NAME ${mutest_FILE} NAME_WE)
 
